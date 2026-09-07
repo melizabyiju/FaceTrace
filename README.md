@@ -2,7 +2,7 @@
 
 **Face Identification & Blockchain Verification Pipeline**
 
-> HH Goa 2026 — Shortlisting Task 3
+> HH Goa 2026 — Task 3
 
 ---
 
