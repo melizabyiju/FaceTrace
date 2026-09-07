@@ -7,6 +7,12 @@ Provides a visual, step-by-step interface for the entire pipeline:
 import os
 import sys
 import tempfile
+import warnings
+
+# Suppress verbose TensorFlow logs and deprecation warnings
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+warnings.filterwarnings("ignore")
 
 # Ensure project root is importable
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -110,22 +116,45 @@ def main():
     # ── Step 4: Reverse Image Search ────────────────────────────────────
     st.header("Step 4 · Web / Social Media Search")
 
-    if not Config.SERPAPI_KEY:
+    # Allow key from sidebar or .env
+    with st.sidebar:
+        st.header("⚙️ Configuration")
+        user_serp_key = st.text_input(
+            "SerpAPI Key (optional if in .env)",
+            value=Config.SERPAPI_KEY,
+            type="password",
+            help="Get your free key from https://serpapi.com"
+        )
+        if user_serp_key:
+            Config.SERPAPI_KEY = user_serp_key
+
+        rpc_input = st.text_input(
+            "Blockchain RPC URL",
+            value=Config.BLOCKCHAIN_RPC_URL,
+            help="Default: http://127.0.0.1:8545 (Hardhat node)"
+        )
+        if rpc_input:
+            Config.BLOCKCHAIN_RPC_URL = rpc_input
+
+    active_api_key = user_serp_key or Config.SERPAPI_KEY
+    if not active_api_key:
         st.error(
-            "❌ `SERPAPI_KEY` not set. Get a free key at "
-            "https://serpapi.com/ and add it to your `.env` file."
+            "❌ `SERPAPI_KEY` is required. Enter it in the sidebar on the left or add it to your `.env` file.\n"
+            "Get a free key (100 searches/month) at: https://serpapi.com/"
         )
         st.stop()
 
     if st.button("🌐 Search Web for Matching Posts", type="primary"):
         with st.spinner("Uploading image & querying Google Lens (10-30 s)…"):
             try:
+                Config.SERPAPI_KEY = active_api_key
                 results = pipeline.step3_search(st.session_state.image_path)
                 st.session_state.search_done = True
                 st.session_state.search_results = results
                 st.success(f"✅ Found {len(results)} result(s)!")
             except Exception as e:
                 st.error(f"❌ Search failed: {e}")
+
 
     if not st.session_state.get("search_done"):
         return
@@ -161,14 +190,21 @@ def main():
                 if matches:
                     best = matches[0]
                     sim = best["comparison"].get("similarity_percent", 0)
-                    st.success(f"✅ Best match — {sim:.1f}% similarity")
+                    st.success(f"✅ Best match — {sim:.1f}% similarity ({best['search_result'].platform})")
                 else:
-                    st.warning("⚠️ No face matches found in candidate images.")
+                    st.warning("⚠️ Face matching was inconclusive or candidate images did not contain detectable faces. Using top discovered post for fingerprinting.")
+                    top_result = st.session_state.search_results[0]
+                    st.session_state.matches = [{
+                        "search_result": top_result,
+                        "comparison": {"similarity_percent": 0.0, "verified": False, "image_data": top_result.url.encode("utf-8")},
+                        "rank": 1
+                    }]
             except Exception as e:
                 st.error(f"❌ Matching failed: {e}")
 
     if not st.session_state.get("match_done"):
         return
+
 
     if st.session_state.get("matches"):
         st.subheader("Match Results (ranked by similarity)")

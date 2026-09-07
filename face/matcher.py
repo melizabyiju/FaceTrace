@@ -83,11 +83,20 @@ def download_and_compare(input_image_path: str, candidate_url: str,
             tmp.write(response.content)
             tmp_path = tmp.name
         
+        img_bytes = response.content
         try:
             result = compare_faces(input_image_path, tmp_path, model_name)
             result["candidate_url"] = candidate_url
-            result["image_data"] = response.content
+            result["image_data"] = img_bytes
             return result
+        except Exception as e:
+            return {
+                "verified": False,
+                "error": f"Comparison failed: {e}",
+                "candidate_url": candidate_url,
+                "similarity_percent": 0.0,
+                "image_data": img_bytes
+            }
         finally:
             try:
                 os.unlink(tmp_path)
@@ -99,12 +108,14 @@ def download_and_compare(input_image_path: str, candidate_url: str,
             "verified": False,
             "error": f"Download failed: {e}",
             "candidate_url": candidate_url,
-            "similarity_percent": 0.0
+            "similarity_percent": 0.0,
+            "image_data": b""
         }
     except Exception as e:
         return {
             "verified": False,
             "error": f"Comparison failed: {e}",
             "candidate_url": candidate_url,
-            "similarity_percent": 0.0
+            "similarity_percent": 0.0,
+            "image_data": b""
         }
