@@ -205,19 +205,21 @@ python scripts/deploy_contract.py
 ### Option A: Streamlit UI (Recommended for Demo)
 
 ```bash
-# Terminal 1: Start blockchain
+# Terminal 1: Start blockchain (if not already running)
 npx hardhat node
 
 # Terminal 2: Start app
-streamlit run app/main.py
+python -m streamlit run app/main.py
 ```
 
 Then open `http://localhost:8501` in your browser.
 
+> **Tip (Windows):** Using `python -m streamlit run app/main.py` ensures execution even if your Python Scripts folder is not added to your system PATH.
+
 ### Option B: CLI
 
 ```bash
-# Terminal 1: Start blockchain
+# Terminal 1: Start blockchain (if not already running)
 npx hardhat node
 
 # Terminal 2: Run pipeline
@@ -266,11 +268,12 @@ The system re-downloads the data, recomputes the SHA-256 hash, retrieves the on-
 
 Follow this sequence for a clean ~60-second recording:
 
-1. **Start Hardhat node** in Terminal 1: `npx hardhat node`
-2. **Start Streamlit** in Terminal 2: `streamlit run app/main.py`
+1. **Start Hardhat node** in Terminal 1 (if not already running): `npx hardhat node`
+2. **Start Streamlit** in Terminal 2: `python -m streamlit run app/main.py`
 3. **Upload** your own face photo (selfie)
 4. **Check consent** checkbox
 5. **Click** "Detect & Encode Face" → show ✅ Face detected
+
 6. **Click** "Search Web" → show search results appearing
 7. **Click** "Match Faces" → show similarity scores
 8. **Click** "Create Fingerprint & Write to Blockchain" → show hash + transaction
