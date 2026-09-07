@@ -24,23 +24,41 @@ def validate_image(image_path: str) -> dict:
 def detect_faces(image_path: str, detector_backend: str = "opencv") -> list:
     """
     Detect faces in an image.
-    
-    Returns list of detected face dicts with facial_area info.
-    Each dict contains keys: 'face', 'facial_area', 'confidence'.
+    Tries primary detector, falls back to alternate detectors if not found.
     """
+    backends_to_try = [detector_backend, "opencv", "ssd"]
+    # De-duplicate while preserving order
+    seen = set()
+    backends = [b for b in backends_to_try if not (b in seen or seen.add(b))]
+
+    for backend in backends:
+        try:
+            faces = DeepFace.extract_faces(
+                img_path=image_path,
+                detector_backend=backend,
+                enforce_detection=True,
+                align=True
+            )
+            if faces and len(faces) > 0:
+                return faces
+        except Exception:
+            continue
+
+    # Final attempt: non-strict detection (useful for selfies with angles/zoomed framing)
     try:
         faces = DeepFace.extract_faces(
             img_path=image_path,
-            detector_backend=detector_backend,
-            enforce_detection=True,
+            detector_backend="opencv",
+            enforce_detection=False,
             align=True
         )
-        return faces
-    except ValueError:
-        return []
+        if faces:
+            return faces
     except Exception as e:
         print(f"[FaceDetect] Error: {e}")
-        return []
+
+    return []
+
 
 
 def get_face_count(image_path: str, detector_backend: str = "opencv") -> int:
