@@ -83,15 +83,16 @@ Hash Comparison
 
 ## Features
 
-- ✅ Face detection and encoding with DeepFace
-- ✅ Genuine reverse image search via Google Lens (SerpAPI) — not hardcoded
-- ✅ Face similarity comparison between input and candidates
-- ✅ Deterministic SHA-256 fingerprinting
-- ✅ Smart contract deployment and hash registration on-chain
-- ✅ On-chain re-verification with clear VERIFIED / MISMATCH output
-- ✅ Explicit consent confirmation before search
-- ✅ Both Streamlit UI and CLI interfaces
-- ✅ No raw personal data ever written on-chain
+- ✅ **Robust Face Detection & Encoding**: Multi-backend cascade (DeepFace + OpenCV Haar Cascades + SSD) supporting angled, cropped, and real-world selfie images
+- ✅ **Interactive In-Browser Configuration**: Set or update SerpAPI keys and blockchain RPC directly in the UI sidebar without modifying disk files
+- ✅ **Genuine Reverse Image Search**: Google Lens integration via SerpAPI — real-time web & social media discovery (no hardcoding)
+- ✅ **Candidate Face Matching & Fallback**: Computes cosine face similarity against discovered post assets with robust graceful fallback
+- ✅ **Deterministic SHA-256 Fingerprinting**: Formulates immutable cryptographic digest over post URL, image hash, and discovery timestamp
+- ✅ **EVM Blockchain Anchoring**: Pre-compiled Solidity `VerificationRegistry` contract deployment and transaction submission via `web3.py`
+- ✅ **Tamper-Evident Re-Verification**: Real-time on-chain hash retrieval and mathematical comparison (VERIFIED ✓ / MISMATCH ✗)
+- ✅ **Consent Enforcement**: Explicit confirmation checkpoint prior to triggering reverse search
+- ✅ **Zero PII on Blockchain**: Only cryptographic hashes are permanently anchored
+
 
 ---
 
@@ -231,7 +232,11 @@ python scripts/run_pipeline.py path/to/your/face/image.jpg
 ## How the Pipeline Works
 
 ### Step 1 — Face Detection
-The input image is validated and faces are detected using DeepFace with the OpenCV backend. The system rejects images with no faces.
+The input image is validated and saved to `data/input_face.ext`. The face detection engine uses a robust multi-stage cascade:
+1. Primary deep learning detector via DeepFace (`opencv` / `ssd` backends)
+2. Direct OpenCV Haar Cascade classifier (`haarcascade_frontalface_default.xml`) for real-world selfie and angled mobile camera orientations
+3. Adaptive non-strict alignment fallback to prevent false rejections on cropped or close-up portraits
+
 
 ### Step 2 — Face Encoding
 A numerical embedding vector (128–2622 dimensions depending on the model) is generated for the detected face, which captures facial features in a way suitable for comparison.
