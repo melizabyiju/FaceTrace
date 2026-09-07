@@ -76,11 +76,15 @@ def main():
         st.info("👆 Upload an image to begin.")
         return
 
-    # Save to temp file
-    suffix = os.path.splitext(uploaded.name)[1]
-    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-        tmp.write(uploaded.getvalue())
-        image_path = tmp.name
+    # Save persistently to data/ directory to avoid Windows tempfile path issues
+    data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
+    os.makedirs(data_dir, exist_ok=True)
+    ext = os.path.splitext(uploaded.name)[1].lower() or ".jpg"
+    image_path = os.path.join(data_dir, f"input_face{ext}")
+    with open(image_path, "wb") as f:
+        f.write(uploaded.getvalue())
+
+    st.session_state.image_path = image_path
 
     col_img, col_info = st.columns([1, 2])
     with col_img:
@@ -88,6 +92,8 @@ def main():
     with col_info:
         st.write(f"**File:** {uploaded.name}")
         st.write(f"**Size:** {len(uploaded.getvalue()) / 1024:.1f} KB")
+        st.caption(f"Stored at: `{image_path}`")
+
 
     # ── Step 2: Consent ─────────────────────────────────────────────────
     st.header("Step 2 · Consent Confirmation")
