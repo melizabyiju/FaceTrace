@@ -1,0 +1,23 @@
+# Face detection & encoding
+deepface>=0.0.89
+opencv-python>=4.8.0
+tf-keras>=2.16.0
+
+# Reverse image search
+google-search-results>=2.4.2
+requests>=2.31.0
+
+# Blockchain
+web3>=6.15.0
+py-solc-x>=2.0.0
+eth-account>=0.11.0
+
+# Utilities
+python-dotenv>=1.0.0
+Pillow>=10.0.0
+
+# UI
+streamlit>=1.30.0
+
+# Testing
+pytest>=7.4.0

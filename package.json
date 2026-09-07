@@ -1,0 +1,12 @@
+{
+  "name": "facetrace-blockchain",
+  "version": "1.0.0",
+  "description": "Local blockchain node for FaceTrace verification",
+  "scripts": {
+    "node": "npx hardhat node",
+    "compile": "npx hardhat compile"
+  },
+  "devDependencies": {
+    "hardhat": "^2.19.0"
+  }
+}

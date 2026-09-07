@@ -1,0 +1,1 @@
+"""FaceTrace application module."""
