@@ -35,16 +35,35 @@ def main():
     )
     st.divider()
 
-    # Show config warnings
-    config_errors = Config.validate()
-    if config_errors:
-        for err in config_errors:
-            st.warning(f"⚠️ {err}")
+    # ── Sidebar Settings ────────────────────────────────────────────────
+    with st.sidebar:
+        st.header("⚙️ Configuration")
+        user_serp_key = st.text_input(
+            "SerpAPI Key",
+            value=Config.SERPAPI_KEY,
+            type="password",
+            help="Get your free key (100 searches/month) from https://serpapi.com"
+        )
+        if user_serp_key:
+            Config.SERPAPI_KEY = user_serp_key.strip()
+
+        rpc_input = st.text_input(
+            "Blockchain RPC URL",
+            value=Config.BLOCKCHAIN_RPC_URL,
+            help="Default: http://127.0.0.1:8545 (Hardhat node)"
+        )
+        if rpc_input:
+            Config.BLOCKCHAIN_RPC_URL = rpc_input.strip()
+
+    # Show config warnings only if not configured in sidebar
+    if not Config.SERPAPI_KEY:
+        st.warning("⚠️ `SERPAPI_KEY` is not set yet. You can paste it into the sidebar on the left or add it to `.env`.")
 
     # Init pipeline in session
     if "pipeline" not in st.session_state:
         st.session_state.pipeline = FaceTracePipeline()
     pipeline = st.session_state.pipeline
+
 
     # ── Step 1: Upload ──────────────────────────────────────────────────
     st.header("Step 1 · Upload Face Image")
@@ -116,33 +135,13 @@ def main():
     # ── Step 4: Reverse Image Search ────────────────────────────────────
     st.header("Step 4 · Web / Social Media Search")
 
-    # Allow key from sidebar or .env
-    with st.sidebar:
-        st.header("⚙️ Configuration")
-        user_serp_key = st.text_input(
-            "SerpAPI Key (optional if in .env)",
-            value=Config.SERPAPI_KEY,
-            type="password",
-            help="Get your free key from https://serpapi.com"
-        )
-        if user_serp_key:
-            Config.SERPAPI_KEY = user_serp_key
-
-        rpc_input = st.text_input(
-            "Blockchain RPC URL",
-            value=Config.BLOCKCHAIN_RPC_URL,
-            help="Default: http://127.0.0.1:8545 (Hardhat node)"
-        )
-        if rpc_input:
-            Config.BLOCKCHAIN_RPC_URL = rpc_input
-
-    active_api_key = user_serp_key or Config.SERPAPI_KEY
-    if not active_api_key:
+    if not Config.SERPAPI_KEY:
         st.error(
             "❌ `SERPAPI_KEY` is required. Enter it in the sidebar on the left or add it to your `.env` file.\n"
             "Get a free key (100 searches/month) at: https://serpapi.com/"
         )
         st.stop()
+
 
     if st.button("🌐 Search Web for Matching Posts", type="primary"):
         with st.spinner("Uploading image & querying Google Lens (10-30 s)…"):
